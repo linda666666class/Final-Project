@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        @import url(https://fonts.googleapis.com/earlyaccess/notosanstc.css);
+
+        body {
+
+
+            cursor: grabbing;
+
+
+            font-family: 'Noto Sans TC', sans-serif;
+
+
+            position: relative;
+            /* 添加相对定位，將薄纱覆蓋在其上 */
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, #333333, #CCCCCC, #FFFFFF);
+            /* 使用線性漸變創建背景 */
+            z-index: -1;
+            /* 將薄纱置於最底層，使其在内容上方顯示 */
+        }
+
+
+
+
+        .section {
+            position: relative;
+            height: 700px;
+            overflow: auto;
+        }
+
+        .canvasContainer {
+            background-image: url('mrt2.png');
+            background-size: 100% 100%;
+            /*很重要，不能改*/
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 1px dashed rgba(255, 255, 255, 0.5);
+            height: 700px;
+            opacity: 1;
+            border-radius: 10px;
+            box-shadow: 0 0 10px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .circle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #F00078;
+            border: 2px solid #FF8040;
+            cursor: pointer;
+            border-radius: 50%;
+            /* animation: jump 1s infinite;*/
+            animation: flash 1s infinite;
+            aspect-ratio: 1/1;
+            overflow: hidden;
+        }
+
+        /*@keyframes jump {
+            0% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+
+            100% {
+                transform: translateY(0);
+            }
+        }*/
+
+
+        @keyframes flash {
+            0% {
+                opacity: 1;
+            }
+
+            25% {
+
+
+                opacity: 0;
+            }
+
+            /* 50% {
+                opacity: 1;
+            }
+           
+            75% {
+
+                opacity: 0;
+            } */
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .circle:hover {
+            width: 20px;
+            height: 20px;
+        }
+
+        .circle:focus {
+            outline: none;
+        }
+
+        .dialog {
+            display: none;
+            position: absolute;
+            z-index: 2;
+            top: 80px;
+            left: 250px;
+            background-color: lightblue;
+            border: 1px solid lightblue;
+            border-radius: 10px;
+            padding: 10px;
+            cursor: auto;
+
+        }
+
+        .media-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 10px;
+            position: relative;
+        }
+
+
+        .media-container img {
+            max-width: 150%;
+            max-height: 150px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px 5px rgba(0, 0, 0, 0.3);
+        }
+
+
+
+
+        .closeButton {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            /* 加入這行來設定文字粗體 */
+        }
+
+        .head {
+            white-space: pre-line;
+        }
+
+        .scrollToTop {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background-color: blueviolet;
+            color: #fff;
+            text-align: center;
+            line-height: 40px;
+            cursor: pointer;
+            border-radius: 50%;
+            background-size: cover;
+            animation: butterflyFly 2s infinite alternate;
+            border-radius: 10px;
+            box-shadow: 0 0 10px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        @keyframes butterflyFly {
+            0% {
+                transform: translateY(0);
+            }
+
+            20% {
+                transform: translateY(20px);
+            }
+
+            60% {
+                transform: translateY(-80px);
+            }
+
+            100% {
+                transform: translateY(0);
+            }
+        }
+
+        .scrollToTop:before {
+            content: "\25B2";
+            font-size: 20px;
+        }
+
+
+
+
+
+        /* 這部分是新增的 CSS */
+        .section-titles {
+            /*background-color: gainsboro;*/
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            flex-direction: row;
+            /*justify-content: flex-end;*/
+            justify-content: center;
+            align-items: center;
+            margin-top: 30px;
+            /* 添加 margin-top 以避免被 header 遮擋 */
+            z-index: 999;
+            /* 降低z-index以使其位於header下方 */
+            padding: 10px;
+            /* 調整section titles的padding值 */
+            position: relative;
+            background-color: black;
+            color: white;
+            /* 調整section title的字體顏色，這裡設為深灰色 */
+            margin-left: 10px;
+            /* 調整section title之間的間距 */
+            cursor: pointer;
+            overflow-x: auto;
+            white-space: nowrap;
+            scrollbar-width: thin;
+            /*scrollbar-color: gray lightgray;*/
+            padding: 1px;
+            width: 100%;
+        }
+
+        .section-title {
+            margin-left: 10px;
+            cursor: pointer;
+            display: inline-block;
+            padding: 5px;
+            margin-right: 10px;
+            background-color: black;
+            color: white;
+            cursor: pointer;
+            text-align: center;
+            transform: rotateY(360deg);
+            /*width: 100%;*/
+            transition: color 0.5s, font-size 0.5s;
+        }
+
+        /* 設置鼠標懸停時的顏色 */
+
+        .section-title:hover {
+            animation: colorChange 1s infinite alternate;
+        }
+
+        @keyframes colorChange {
+            0% {
+                color: #4A4AFF;
+                font-size: 1em;
+            }
+
+            50% {
+                color: #921AFF;
+                font-size: 1.2em;
+            }
+
+            100% {
+                color: #FF0080;
+                font-size: 1em;
+            }
+        }
+
+
+        .section-titles::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        /* .section-titles::-webkit-scrollbar-thumb {
+            background-color: gray;
+        }
+
+        .section-titles::-webkit-scrollbar-track {
+            background-color: lightgray;
+        }*/
+
+        header {
+
+            background: linear-gradient(45deg, white, #D3A4FF, #0072E3, #0047B2, #BE77FF, white);
+            color: black;
+            padding: 1px;
+            text-align: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 50px;
+            /* 修改为较小的值，使 header 更短 */
+            z-index: 9999;
+            opacity: 1;
+            /* 0.0 到 1.0 之間的值，0.0 表示完全透明，1.0 表示完全不透明 */
+            text-shadow: 0 0 2px gray;
+            animation: blurBackground 5s infinite linear;
+        }
+
+        img {
+            width: 300px;
+            height: 350px;
+            object-fit: cover;
+            display: block;
+            transition: filter 0.3s ease;
+            border-radius: 10px;
+            box-shadow: 0 0 10px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        h2 {
+            color: white;
+            padding: 25px;
+            font-size: 25px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            margin-bottom: 0;
+            background: linear-gradient(45deg, white, #0072E3, #0047B2, white);
+            animation: waveAnimation 1.5s infinite linear;
+        }
+
+        @keyframes waveAnimation {
+
+            0%,
+            100% {
+                transform: translateX(0) translateY(0);
+            }
+
+            25% {
+                transform: translateX(-5px) translateY(-5px);
+            }
+
+            50% {
+                transform: translateX(0) translateY(0);
+            }
+
+            75% {
+                transform: translateX(5px) translateY(5px);
+            }
+        }
+
+
+        @keyframes blurBackground {
+            0% {
+                background-position: top left;
+            }
+
+            100% {
+                background-position: bottom right;
+            }
+        }
+
+        h3 {
+            text-shadow: 0 0 2px white;
+        }
+
+        h1 {
+            text-align: center;
+            padding: 29px;
+            cursor: pointer;
+            transition: color 0.5s, font-size 0.5s;
+            /* 添加字体大小的过渡效果 */
+            font-size: 36px;
+            /* 初始字体大小 */
+
+        }
+
+        .h1-clicked {
+            color: yellow;
+            transform: rotate(360deg);
+            font-size: 45px;
+        }
+
+        #section0 {
+            background: linear-gradient(45deg, white, #D3A4FF, #0072E3, #0047B2, #BE77FF, white);
+            width: 100%;
+
+        }
+
+        #section1 {
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            padding-top: 220px;
+            /* 添加 padding-top 以避免被 header 遮擋 */
+
+
+        }
+
+        #section2 {
+            padding-top: 220px;
+            /* 调整上边距的值以适应需要 */
+
+        }
+
+        #section3 {
+            padding-top: 220px;
+            /* 调整上边距的值以适应需要 */
+        }
+
+        #section4 {
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            padding-top: 100px;
+            /* 添加 padding-top 以避免被 header 遮擋 */
+
+            background-attachment: scroll;
+            background-size: auto;
+            /* 其他样式属性 */
+            /*background-color: rgba(0, 0, 0, 0);
+            opacity: 0.5;
+            border-radius: 5px;
+            box-shadow: 0 0 10px 5px rgba(0, 0, 0, 0.3);*/
+
+        }
+
+        #section5 {
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            padding-top: 100px;
+
+            background-attachment: scroll;
+            background-size: auto;
+            /* 添加 padding-top 以避免被 header 遮擋 */
+            border-radius: 5px;
+            box-shadow: 0 0 10px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        #section6 {
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            padding-top: 100px;
+
+            background-attachment: scroll;
+            background-size: auto;
+            /* 添加 padding-top 以避免被 header 遮擋 */
+            border-radius: 5px;
+            box-shadow: 0 0 10px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        #section7 {
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            padding-top: 210px;
+            /* 添加 padding-top 以避免被 header 遮擋 */
+            /* background-color: rgb(23, 195, 211);*/
+        }
+
+        /*頁尾相關設定*/
+        .footer {
+            position: relative;
+            padding: 40px;
+            width: 100%;
+            background-color: #9393FF;
+            text-align: center;
+
+
+        }
+
+        .footer a {
+            font-size: 25px;
+            text-decoration: none;
+        }
+
+        /* Team Members CSS */
+
+        /* * {
+            box-sizing: border-box;
+        }*/
+        /*sction7成員介紹相關設定*/
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            flex: 1;
+            /* 將行元素平均佔據可用空間 */
+            /* border: 2px solid pink;
+            border-style: groove;*/
+            /* 凹線 */
+            width: 300px;
+            height: 300px;
+            /* 修改此處為您想要的高度 */
+
+        }
+
+        .column {
+            display: flex;
+            /* 將列元素橫向排列 */
+            padding: 20px;
+            justify-content: center;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            /* border: 2px solid lightsteelblue;
+            border-style: dotted;
+            /* 點線 */
+            border-radius: 10px;
+            box-shadow: 0 0 10px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .container {
+            position: relative;
+            width: 100%;
+            max-width: 100%;
+            display: flex;
+            /*justify-content: center;*/
+            justify-content: space-between;
+            text-align: center;
+            align-items: center;
+            padding: 5%;
+            /* border: 2px solid #005AB5;
+            border-style: dashed;
+            /* 虛線 */
+            /* 添加外框，2px 寬度，黑色實線 */
+            padding: 10px;
+            /* 添加內距，使內容與外框有一定間隔 */
+            flex: 1;
+            /* 將容器元素平均佔據可用空間 */
+            border-radius: 10px;
+            box-shadow: 0 0 10px 5px rgba(0, 0, 0, 0.3);
+        }
+
+
+
+
+        @media only screen and (max-width: 768px) {
+            .column {
+                flex: 0 0 50%;
+            }
+        }
+
+        @media only screen and (max-width: 576px) {
+            .column {
+                flex: 0 0 100%;
+            }
+        }
+
+        .column {
+            width: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .member {
+            position: relative;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .member img {
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
+            display: block;
+            transition: filter 0.3s ease;
+            border-radius: 10px;
+            box-shadow: 0 0 10px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .member:hover img {
+            filter: brightness(50%);
+        }
+
+        .member:hover .overlay {
+            opacity: 1;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 50;
+            bottom: 100;
+            left: 50;
+            right: 50;
+            background-color: rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            border-radius: 10px;
+            box-shadow: 0 0 10px 5px rgba(0, 0, 0, 0.3);
+            width: 200px;
+            height: 200px;
+        }
+
+        .text {
+            color: white;
+            font-size: 16px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            width: 100%;
+            padding: 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .member:hover .text {
+            opacity: 1;
+        }
+
+        /*sction10格子相關設定*/
+        #section10 {
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 230px;
+            text-align: center;
+            /* 如果需要内容居中对齐 */
+
+
+        }
+
+        .arrow {
+            cursor: pointer;
+            text-align: center;
+            color: blue;
+            background-color: lightgray;
+            /* 设置收缩按钮的背景顏色 */
+            margin-top: 20px;
+        }
+
+        .content {
+            display: none;
+            margin-top: 20px;
+            background-color: lightblue;
+            /* 设置内容区域的背景顏色 */
+            padding: 5px;
+        }
+
+        .grid-container {
+            display: flex;
+            flex-wrap: wrap;
+            overflow-x: auto;
+            white-space: nowrap;
+            border-radius: 10px;
+            box-shadow: 0 0 10px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .grid-row {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            border-radius: 10px;
+
+        }
+
+        .grid {
+            flex: 0 0 calc(20% - 10px);
+            height: 100px;
+            margin-right: 5px;
+            background-color: white;
+            border: 2px solid white;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            border-radius: 10px;
+            box-shadow: 0 0 10px 5px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            /* 调整格子的宽度 */
+            box-sizing: border-box;
+            padding: 10px;
+        }
+
+        .grid:hover {
+            background-color: lightgray;
+        }
+
+        .grid:hover h3,
+        .grid:hover p {
+            color: white;
+        }
+
+        .blue {
+            background-color: blue;
+        }
+
+        .red {
+            background-color: red;
+        }
+
+        .green {
+            background-color: green;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+
+        <section id="section0">
+            <h1 onclick="changeColor(this)">捷運資訊網</h1>
+            <div class="section-titles">
+                <div class="section-title" onclick="scrollToSection('section10')">捷運站查詢</div>
+                <div class="section-title" onclick="scrollToSection('section1')">夜市地圖</div>
+                <div class="section-title" onclick="scrollToSection('section2')">觀光景點地圖</div>
+                <div class="section-title" onclick="scrollToSection('section3')">戶外休閒地圖</div>
+                <div class="section-title" onclick="scrollToSection('section7')">團隊成員介紹</div>
+                <div class="section-title"
+                    onclick="window.open('https://www.metro.taipei/cp.aspx?n=91974F2B13D997F1', '_blank')">捷運站網站</div>
+            </div>
+    </header>
+    </section>
+    <section id="section10">
+        <h2 style="background-color: 	#46A3FF; text-align: center;">捷運站</h2>
+        <div class="arrow" onclick="toggleContent()" id="arrow">&#9660;</div>
+        <div class="content" id="content">
+
+            <div class="grid-container">
+                <div class="grid-row">
+                    <div class="grid" onmouseover="gridchangeColor1(this, 'blue', '虎山親山步道')"
+                        onmouseout="gridchangeColor1(this, 'white', '虎山親山步道')" onclick="scrollToSection('section3')">
+                        <h3 data-subway-title="後山埤">虎山親山步道</h3>
+                        <h3 contenteditable="true"></h3>
+                    </div>
+
+                    <div class="grid" onmouseover="gridchangeColor1(this, 'blue', '國父紀念館')"
+                        onmouseout="gridchangeColor1(this, 'white', '國父紀念館')" onclick="scrollToSection('section2')">
+                        <h3 data-subway-title="國父紀念館">國父紀念館</h3>
+                        <h3 contenteditable="true"></h3>
+                    </div>
+                    <div class="grid" onmouseover="gridchangeColor1(this, 'blue', '西門紅樓')"
+                        onmouseout="gridchangeColor1(this, 'white', '西門紅樓')" onclick="scrollToSection('section2')">
+                        <h3 data-subway-title="西門">西門紅樓</h3>
+                        <h3 contenteditable="true"></h3>
+                    </div>
+
+                    <div class="grid" onmouseover="gridchangeColor1(this, 'blue', '艋舺龍山寺')"
+                        onmouseout="gridchangeColor1(this, 'white', '艋舺龍山寺')" onclick="scrollToSection('section2')">
+                        <h3 data-subway-title="龍山寺">艋舺龍山寺</h3>
+                        <h3 contenteditable="true"></h3>
+                    </div>
+
+                </div>
+                <div class="grid-row">
+                    <div class="grid" onmouseover="gridchangeColor1(this, 'red', '象山親山步道')"
+                        onmouseout="gridchangeColor1(this, 'white', '象山親山步道')" onclick="scrollToSection('section3')">
+                        <h3 data-subway-title="象山">象山親山步道</h3>
+                        <h3 contenteditable=" true"></h3>
+                    </div>
+
+                    <div class="grid" onmouseover="gridchangeColor1(this, 'red', '二二八和平紀念公園')"
+                        onmouseout="gridchangeColor1(this, 'white', '二二八和平紀念公園')" onclick="scrollToSection('section2')">
+                        <h3 data-subway-title="臺大醫院">二二八和平紀念公園</h3>
+                        <h3 contenteditable="true"></h3>
+                    </div>
+                    <div class="grid" onmouseover="gridchangeColor1(this, 'red', '寧夏夜市')"
+                        onmouseout="gridchangeColor1(this, 'white', '寧夏夜市')" onclick="scrollToSection('section1')">
+                        <h3 data-subway-title="中山">寧夏夜市</h3>
+                        <h3 contenteditable="true"></h3>
+                    </div>
+
+                    <div class="grid" onmouseover="gridchangeColor1(this, 'red', '士林夜市')"
+                        onmouseout="gridchangeColor1(this, 'white', '士林夜市')" onclick="scrollToSection('section1')">
+                        <h3 data-subway-title="劍潭">士林夜市</h3>
+                        <h3 contenteditable="true"></h3>
+                    </div>
+
+                    <div class="grid" onmouseover="gridchangeColor1(this, 'red', '紅毛城')"
+                        onmouseout="gridchangeColor1(this, 'white', '紅毛城')" onclick="scrollToSection('section2')">
+                        <h3 data-subway-title="淡水">紅毛城</h3>
+                        <h3 contenteditable="true"></h3>
+                    </div>
+                </div>
+                <div class="grid-row">
+                    <div class="grid" onmouseover="gridchangeColor1(this, 'green', '饒河街觀光夜市')"
+                        onmouseout="gridchangeColor1(this, 'white', '饒河街觀光夜市')" onclick="scrollToSection('section1')">
+                        <h3 data-subway-title="松山">饒河街觀光夜市</h3>
+                        <h3 contenteditable="true"></h3>
+                    </div>
+
+                    <div class="grid" onmouseover="gridchangeColor1(this, 'green', '中正紀念堂')"
+                        onmouseout="gridchangeColor1(this, 'white', '中正紀念堂')" onclick="scrollToSection('section2')">
+                        <h3 data-subway-title="中正紀念堂">中正紀念堂
+                        </h3>
+                        <h3 contenteditable="true"></h3>
+                    </div>
+                    <div class="grid" onmouseover="gridchangeColor1(this, 'green', '台灣大學')"
+                        onmouseout="gridchangeColor1(this, 'white', '台灣大學')" onclick="scrollToSection('section2')">
+                        <h3 data-subway-title="公館">台灣大學</h3>
+                        <h3 contenteditable="true"></h3>
+                    </div>
+
+                    <div class="grid" onmouseover="gridchangeColor1(this, 'green', '景美夜市')"
+                        onmouseout="gridchangeColor1(this, 'white', '景美夜市')" onclick="scrollToSection('section1')">
+                        <h3 data-subway-title="景美">景美夜市</h3>
+                        <h3 contenteditable="true"></h3>
+                    </div>
+                </div>
+                <div class="grid-row">
+                    <div class="grid" onmouseover="gridchangeColor1(this, 'orange', '大稻埕')"
+                        onmouseout="gridchangeColor1(this, 'white', '大稻埕')" onclick="scrollToSection('section2')">
+                        <h3 data-subway-title="大橋頭">大稻埕</h3>
+                        <h3 contenteditable="true"></h3>
+                    </div>
+
+                    <div class="grid" onmouseover="gridchangeColor1(this, 'orange', '行天宮')"
+                        onmouseout="gridchangeColor1(this, 'white', '行天宮')" onclick="scrollToSection('section2')">
+                        <h3 data-subway-title="行天宮">行天宮 </h3>
+                        <h3 contenteditable="true"></h3>
+                    </div>
+
+                    <div class="grid" onmouseover="gridchangeColor1(this, 'orange', '樂華夜市')"
+                        onmouseout="gridchangeColor1(this, 'white', '樂華夜市')" onclick="scrollToSection('section1')">
+                        <h3 data-subway-title="頂溪">樂華夜市 </h3>
+                        <h3 contenteditable="true"></h3>
+                    </div>
+
+                </div>
+                <div class="grid-row">
+                    <div class="grid" onmouseover="gridchangeColor1(this, '#D26900', '金面山親山步道')"
+                        onmouseout="gridchangeColor1(this, 'white', '金面山親山步道')" onclick="scrollToSection('section3')">
+                        <h3 data-subway-title="西湖">金面山親山步道</h3>
+                        <h3 contenteditable="true"></h3>
+                    </div>
+
+                    <div class="grid" onmouseover="gridchangeColor1(this, '#D26900', '指南宮貓空親山步道')"
+                        onmouseout="gridchangeColor1(this, 'white', '指南宮貓空親山步道')" onclick="scrollToSection('section3')">
+                        <h3 data-subway-title="萬芳醫院">指南宮貓空親山步道 </h3>
+                        <h3 contenteditable="true"></h3>
+                    </div>
+
+                    <div class="grid" onmouseover="gridchangeColor1(this, '#D26900', '737夜市')"
+                        onmouseout="gridchangeColor1(this, 'white', '737夜市')" onclick="scrollToSection('section1')">
+                        <h3 data-subway-title="港墘">737夜市 </h3>
+                        <h3 contenteditable="true"></h3>
+                    </div>
+
+                </div>
+    </section>
+
+
+    <section id="section1">
+        <h2 style="background-color: lightblue; text-align: center;"> 夜市</h2>
+    </section>
+    <section id="section4" class="section">
+        <div class="canvasContainer" id="canvasContainer1">
+            <canvas id="myCanvas1" width="550" height="700"></canvas>
+            <div class="dialog" id="myDialog1">
+                <h3 class="head" id="head1"></h3>
+                <div class="media-container" id="mediaContainer1"></div>
+                <p id="description1"></p>
+                <h4>路線導航:</h4>
+                <a id="link1" target="_blank"></a>
+                <span class="closeButton" id="closeButton1">&times;</span>
+            </div>
+        </div>
+        </div>
+    </section>
+    <section id="section2">
+        <h2 style="background-color: lightblue;text-align: center;"> 觀光景點</h2>
+    </section>
+    <section id="section5" class="section">
+        <div class="canvasContainer" id="canvasContainer2">
+            <canvas id="myCanvas2" width="550" height="700"></canvas>
+            <div class="dialog" id="myDialog2">
+                <h3 class="head" id="head2"></h3>
+                <div class="media-container" id="mediaContainer2"></div>
+                <p id="description2"></p>
+                <h4>路線導航:</h4>
+                <a id="link2" target="_blank"></a>
+                <span class="closeButton" id="closeButton2">&times;</span>
+            </div>
+        </div>
+        </div>
+    </section>
+    <section id="section3">
+        <h2 style="background-color: lightblue;text-align: center;"> 戶外休閒</h2>
+    </section>
+    <section id="section6" class="section">
+        <div class="canvasContainer" id="canvasContainer3">
+            <canvas id="myCanvas3" width="550" height="700"></canvas>
+            <div class="dialog" id="myDialog3">
+                <h3 class="head" id="head3"></h3>
+                <div class="media-container" id="mediaContainer3"></div>
+                <p id="description3"></p>
+                <h4>路線導航:</h4>
+                <a id="link3" target="_blank"></a>
+                <span class="closeButton" id="closeButton3">&times;</span>
+            </div>
+        </div>
+        </div>
+    </section>
+    <section id="section7">
+        <h2 id="team-members" style="background-color: lightyellow;text-align: center;"> 團隊成員</h2>
+        <div class="container">
+            <div class="column" style="background-color: lightblue;">
+                <div class="row">
+                    <div class="member">
+                        <h3>Bunnie</h3>
+                        <div class="overlay"></div>
+                        <img src="bunnie.png" alt="Bunnie">
+
+                        <div class="text">Bunnie</div>
+                    </div>
+                </div>
+            </div>
+            <div class="column" style="background-color: lavender;">
+                <div class="row">
+                    <div class="member">
+                        <h3>Linda</h3>
+                        <div class="overlay"></div>
+                        <img src="linda.png" alt="Linda">
+                        <div class="text">Linda </div>
+                    </div>
+                </div>
+            </div>
+    </section>
+    <section id="section8">
+        <div class="footer">
+            <p style="color: black;font-weight: bold;">Mind∞W</p>
+            <p style="color: black;">© 2023 Mind∞W. All rights reserved.</p>
+        </div>
+    </section>
+    <div class="scrollToTop" onclick="scrollToTop()"></div>
+
+    <script>
+        const circles1 = [
+            {
+                x: 180,
+                y: 230,
+                head: '士林夜市\nShilin Night Market',
+                link: 'https://reurl.cc/Eopje0',
+                description: '士林夜市是台北市內最大、亦是全台打卡次數最高的夜市地標。曾多次獲選為台灣代表夜市、觀光客來台必去景點首選，揚名國際。2018年，在OpView「台灣十大熱門夜市」調查中，網路聲量第一，成為台灣討論度最高之夜市。',
+                image: '圖片/夜市圖片/士林夜市.jpg.',
+            },
+            {
+                x: 390,
+                y: 340,
+                head: '饒河街觀光夜市\nRaohe Street Night Market',
+                link: 'https://reurl.cc/112bLD',
+                description: '饒河街夜市全長約六百公尺，位於撫遠街與松山火車站前的入口處，各設有一座燈火璀璨的牌樓，由牌樓處開始進入夜市區。饒河街夜市之一大特色，以定期舉辦傳統技藝表演而聞名。兩側商店及騎樓下的攤販不計其數，因此來到此地的人，無論採買服飾、生活用品或吃喝玩樂，絕對能盡其所欲。',
+                image: 'https://www.settour.com.tw/ss_img/poi/20210201/951bfbef-73f0-4bb5-abb4-e85cd03a37a4.',
+            },
+            {
+                x: 175,
+                y: 340,
+                head: '寧夏夜市\nNingxia Night Market',
+                link: 'https://reurl.cc/p6WvjQ',
+                description: '被譽為「台北人的胃」，囊括了各種道地傳統台灣小吃，以及異國小吃料理等等， 2015年，寧夏夜市更於台北市政府舉辦「臺北夜市之最」投票選舉中奪得「最好逛夜市」、「最美味夜市」、「最有魅力夜市」、「最環保夜市」及「最友善夜市」冠軍。',
+                image: 'https://www.travel.taipei/image/221820/?r=1637569637160',
+            },
+            {
+                x: 250,
+                y: 550,
+                head: '景美夜市\nJingmei Night Market',
+                link: 'https://reurl.cc/eD6ylQ',
+                description: '景美夜市位於台北市文山區的一個街邊夜市。景美夜市的所在位置交通便利，四周繁華熱鬧，因此在平日幾乎是人山人海、川流不息，再加上夜市裡的小吃料多味美又實在，也成為許多學生及上班族群們經常喜愛到此光顧用餐之地。在學生及上班族群們絡繹不絕的光顧之下，景美夜市逐漸打響知名度，隨之吸引電視美食節目慕名到此採訪，近年來藉由電視節目的專訪宣傳，景美夜市已成為台北市區知名的美食小吃天地。',
+                image: 'https://photo.travelking.com.tw/scenery/271681C5-2BA2-447A-84D9-0477B6CF2B10_d.jpg',
+            },
+            {
+                x: 150,
+                y: 380,
+                head: '南機場夜市\nSouth Airport Night Market',
+                link: 'https://reurl.cc/94O63d',
+                description: '「南機場」這個名稱是由日治時代所遺留下來的老地名，當初日軍在此地設有軍用機場，後來時間變遷則改建成眷村及國宅，而後由於來往此地的人口眾多，漸漸發展成現在我們所熟悉的「南機場夜市」。',
+                image: 'https://www.travel.taipei/content/images/attractions/293167/1024x768_attractions-image-rkaephvbmuyarwucnw7cla.jpg',
+            },
+            {
+                x: 180,
+                y: 505,
+                head: '樂華夜市\nLehua Night Market',
+                link: 'https://reurl.cc/N0GLyp',
+                description: '樂華夜市有許多台灣道地的小吃，像是米糕、天婦羅、蚵仔煎、蝦仁肉羹和剉冰。這裡的小吃通常以現做的方式提供。此外，還有許多的服飾、小型的娛樂商店、錢櫃KTV、許多雜貨店、好幾家便利商店和連鎖店。但這裡十分擁擠，特別是每個星期五、星期六和星期日。幾乎所有的商店都營業到午夜。',
+                image: 'https://photo.travelking.com.tw/scenery/3E955C73-7F9F-4E98-9D65-AE0A82B75B71_e.jpg',
+            },
+            {
+                x: 405,
+                y: 230,
+                head: '737夜市\nNeihu 737 Night Market',
+                link: 'https://reurl.cc/M8XL9X',
+                description: '內湖737商圈說長不長，但卻有不少特色台灣小吃、美食餐廳，交通位置便利，因此吸引不少遊客及下班後來內湖737商圈逛逛覓食的上班族。內湖737商圈亦鄰近著名的歐式風格的湖光教會、臺北花卉市場、風光明魅的碧湖，讓內湖737商圈充滿魅力與驚喜，成為拜訪內湖時必遊逛之處。',
+                image: 'https://www.travel.taipei/content/images/attractions/181702/1024x768_attractions-image-krlmuls75k6zllx9vez3ma.jpg',
+            },
+        ];
+
+
+        const circles2 = [
+            {
+                x: 175,
+                y: 205,
+                head: '士林官邸\nShilin Official Residence',
+                link: 'https://reurl.cc/94XdNj',
+                description: '士林官邸是已故中華民國總統蔣中正在臺灣的官邸之一，位於臺北市士林區，可分為官邸與花園（含士林園藝所）兩部份。',
+                image: 'https://photo.travelking.com.tw/scenery/0C017A53-99A4-4A12-84DA-BBE7E1E895A7_e.jpg',
+            },
+            {
+                x: 175,
+                y: 410,
+                head: '二二八和平紀念公園\n228 Peace Memorial Park',
+                link: 'https://reurl.cc/v71yzL',
+                description: '原名臺北公園，後改稱臺北新公園，是一座位於臺灣臺北市中正區的公園',
+                image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Taipei228PeaceMemorialPark.jpg/360px-Taipei228PeaceMemorialPark.jpg',
+            },
+            {
+                x: 185,
+                y: 440,
+                head: '中正紀念堂\nNational Chiang Kai-shek Memorial Hall',
+                link: 'https://reurl.cc/qL89Wg',
+                description: '位於中華民國臺北市中正區的國家紀念建築，是中華民國政府為紀念已故前總統蔣中正而興建。',
+                image: 'https://www.travel.taipei/image/222956/?r=1638166401625',
+            },
+            {
+                x: 330,
+                y: 380,
+                head: '國父紀念館\nNational Sun Yat-sen Memorial Hall',
+                link: 'https://reurl.cc/zYz20y',
+                description: '是位於臺灣臺北市信義區的國家紀念建築，係紀念中華民國國父孫中山百年誕辰而興建的綜合性文化紀念設施',
+                image: 'https://image.cdn-eztravel.com.tw/-vRlYtJkNTGrobiVZB5epf5TWaK9DyLQp9Tvl7EhYdc/g:ce/aHR0cHM6Ly92YWNhdGlvbi5jZG4tZXp0cmF2ZWwuY29tLnR3L2ltZy9WRFIvVFAxXzE3NjU3MjkyNjUuanBn.jpg',
+            },
+            {
+                x: 120,
+                y: 390,
+                head: '艋舺龍山寺\nLungshan Temple',
+                link: 'https://reurl.cc/Ye6MZn',
+                description: '也稱萬華龍山寺，是位於臺灣艋舺（今臺北市萬華區）富民里的觀音寺，為清治時期臺北城泉州三邑人的信仰中心，近代成為外國旅客觀光景點，今建築列為國定古蹟。',
+                image: 'https://www.lungshan.org.tw/tw/images/img03_1_1.jpg',
+            },
+            {
+                x: 155,
+                y: 280,
+                head: '大稻埕\nDadaocheng',
+                link: 'https://reurl.cc/zYbgee',
+                description: '雅稱稻江、稻津，是臺北市大同區西南部的一個傳統地域名稱，因具有大片曬稻穀的空地而得名。大稻埕宛若近代台北的歷史切片，每個時期都可以洞見台北當時的生活情景。具有深厚文化底蘊的「大稻埕」，不僅是百年商場，也是台灣新文化運動的啟蒙之地。巷弄中深埋許多故事，百年後，人們得以在大稻埕的老屋看見歷史、在老字號店鋪裡感受過去經商的繁華，更可透過巷弄漫步體驗人文生活，大稻埕的老鋪、職人、產業與族群，更因注入年輕創意，而有了嶄新面貌。',
+                image: 'https://edison.com.tw/wp-content/uploads/2022/01/Dihua-Street-13-1024x768.jpg.webp',
+            },
+            {
+                x: 230,
+                y: 310,
+                head: '行天宮\nHsing Tian Kong',
+                link: 'https://reurl.cc/qL89Wg',
+                description: '或稱恩主公廟，位於臺灣臺北市中山區，又稱臺北關帝廟（如其廟籤詩上所印），主神為關聖帝君（恩主公，從神為關平關聖太子平、周倉周恩師倉）、呂恩主洞賓、張恩主單、王恩主善、岳恩主飛等五聖恩主，是臺灣知名的關帝廟，由經營煤礦事業有成的黃玄空道長所建設而成。',
+                image: 'https://lh3.googleusercontent.com/p/AF1QipPxwxYU4t7Oxp20Lk6Gf-Qsn77_dvqQgvuBqZDL=s1360-w1360-h1020',
+            },
+            {
+                x: 22,
+                y: 55,
+                head: '紅毛城\nFort San Domingo',
+                link: 'https://reurl.cc/3xNrYL',
+                description: '位於台灣新北市淡水區的紅毛城(又稱安東尼堡或舊荷蘭城堡)、前英國領事官邸及其週遭歷史建築群。',
+                image: 'https://lh3.googleusercontent.com/p/AF1QipMb03I13cVQGWt8K-PFm1EUggYVETaG_-JiUCUn=s1360-w1360-h1020',
+            },
+            {
+                x: 150,
+                y: 380,
+                head: '西門紅樓\nThe Red House',
+                link: 'https://reurl.cc/o79z7v',
+                description: '位於臺灣臺北市萬華區西門町，建築由近藤十郎設計，由八角樓與十字樓組成，日治時期原作為西門市場的室內市集。',
+                image: 'https://lh3.googleusercontent.com/p/AF1QipORjUwRr2vvp-8TUTQhHibKc860Q-LQuG1v6FwT=s1360-w1360-h1020',
+
+            },
+            {
+                x: 235,
+                y: 502,
+                head: '台灣大學\nNational Taiwan University',
+                link: 'https://reurl.cc/eD9vLj',
+                description: '1928年創立於臺北市，是臺灣第一所高等教育機構，為中華民國學生人數最多的大專院校',
+                image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/NTU_main_gate_20201212.jpg/450px-NTU_main_gate_20201212.jpg',
+
+            },
+
+        ];
+
+
+
+        const circles3 = [
+            {
+                x: 400,
+                y: 440,
+                head: '象山親山步道\nXiangshan Hiking Trail',
+                link: 'https://reurl.cc/0124Kb',
+                description: '位於台北市信義區的象山，與附近的虎、豹、獅山並稱四獸山，因為外型似象頭而得此名。山頂雖僅有183公尺，但可清楚俯瞰台北盆地及台北地標101大樓，擁有極佳的視野，是許多攝影愛好者拍攝夜景與跨年煙火的最佳地點。象山與虎山地質相同，主要由砂岩組成，步道中可見黃褐色或赭紅色的岩壁與巨石，十分特殊；除此之外，生態多樣豐富、精采可期，因此為大台北地區享受戶外綠林的好去處。',
+                image: 'https://cdntwrunning.biji.co/800_7885322f41fd94d458c5a5c9f4b4ba1b59ba5bc13777a4c144a25c7da3dd7dfd.jpg',
+            },
+            {
+                x: 410,
+                y: 380,
+                head: '虎山親山步道\nHushan Hiking Trail',
+                link: 'https://reurl.cc/LAp527',
+                description: '位於台北市信義區的虎山，與附近的象、豹、獅山並稱四獸山，因為形狀似踞蹲的虎躍狀而得此名。 虎山是台北市民假日休閒的好去處，海拔雖只有140公尺，卻展望良好，經常在轉彎之處看到台北101，感覺101是一路陪伴上山的。步道中有多處平台為欣賞台北101及俯瞰台北盆地的好地點，分別為120高地涼亭、復興園、十方禪寺等，也是欣賞101跨年煙火的最佳熱門處，同時亦是攝影愛好者捕捉台北101風貌的搶手地點。除景色寬闊外，生態也十分豐富，由於虎山溪流經，培育了溪谷型生態環境，除多種蕨類外，也是孕育螢火蟲、蛙類及蜻蜓等豐富生態的最佳地點，兼具郊山健行與生態觀察的特色。',
+                image: 'https://cdntwrunning.biji.co/800_8408dde48673eaef3549a28c756fd0c002b2d1508bcf712af5e3a3b2f065155c.jpg',
+            },
+            {
+                x: 175,
+                y: 230,
+                head: '劍潭山親山步道\nJiantanshan Hiking Trail',
+                link: 'https://reurl.cc/ZWrZl6',
+                description: '劍潭山海拔153公尺，位於台北市士林區圓山風景區，是圓山飯店後山的北稜，也是台北市最接近市中心的小山，沿著稜脊步道緩緩前行可抵達其他山岳，走起來幾乎是輕鬆自在，在交通便捷上佔有極大之優勢。 登山口位於中山北路四段公車劍潭站旁，這裡曾是軍事管制區與保安林地，因此自然林相與生態植物保存的相當完整；步道兩旁許多人工栽種植被與經濟植物，讓步道充滿盎然的綠色魅力。這條步道已成為市民晨運健身的場所，如位於稜線上「老地方」，就是大家熟知的健身據點。',
+                image: 'https://cdntwrunning.biji.co/800_e783644fde5256a770b1517c2686cb068c0631385541ed1d72f414d789505f90.jpg',
+            },
+            {
+                x: 375,
+                y: 230,
+                head: '金面山親山步道\nJinmianshan Hiking Trail',
+                link: 'https://reurl.cc/y7QDl6',
+                description: '金面山為五指山系之西南稜，分金面山與小金面山，這座山地質中的安山砂岩含有石英，因此當太陽照射石遠望山頂閃閃發光，當地人便稱之為金面山。金面山位於內湖金龍產業道路西邊，因從碧山巖方向看過來，山頂巨石形貌有如鳥嘴般尖銳，因此又名剪刀石山，海拔雖僅258公尺卻獨具高山氣勢，山谷曾是清代時期臺北建城時，所用石材的大石之地，巨岩錯落起伏、崢嶸並立，登上半山腰，有一處清代採石場的石堡瞭望台，如今仍留有開採痕跡，置身山頂可以遠眺內湖大埤及台北街景，視野開闊、景致優美。',
+                image: 'https://cdntwrunning.biji.co/800_68d42b4c7b34cab1ec78f01ba2ed5dda8f78d18ef607a5781f077bf463d66e43.jpg',
+            },
+            {
+                x: 375,
+                y: 590,
+                head: '指南宮貓空親山步道\n	Zhinangong Maokong Hiking Trail',
+                link: 'https://reurl.cc/qLOn60',
+                description: '指南宮步道沿途有造型典雅的石燈籠分列步道兩旁，加上從步道入口的牌坊、途中的終南亭等，不難發現步道的興建起於日治昭和年間(1926~1945)，有著濃郁的日式和風建築風格，極為古樸典雅而珍貴。約1200級的石階，普通民眾若想一氣呵成走完，會是相當大的考驗。幸好步階寬敞，兩旁還有櫻花樹、香楠、大葉楠等天然林夾峙，古木參天，蔭深歩道，環境清幽宜人，路旁也不時有座椅供人歇腳，因此成為登山健行、朝拜禮佛、享受芬多精洗禮的最佳路徑。',
+                image: 'https://cdntwrunning.biji.co/800_507bb5f3ff2ec1a0f0eeaab63d448adc4204825f28c598761ea3b93559a9b1e1.jpg',
+            },
+
+        ];
+
+        let isDialogOpen = false;
+        let activeCircle = null;
+
+        function drawCircle(circle, canvasId) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+
+            ctx.beginPath();
+            ctx.arc(circle.x, circle.y, 15, 0, 2 * Math.PI);
+            ctx.fillStyle = 'rgba(0, 0, 0, 0)';
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function openDialog(circle, dialogId) {
+            const dialog = document.getElementById(dialogId);
+            const head = dialog.querySelector('.head');
+            const link = dialog.querySelector('a');
+            const description = dialog.querySelector('p');
+            const mediaContainer = dialog.querySelector('.media-container');
+
+            head.textContent = circle.head;
+            link.href = circle.link;
+            link.textContent = circle.link;
+            description.textContent = circle.description;
+
+            dialog.style.display = 'block';
+            isDialogOpen = true;
+            activeCircle = circle;
+
+            // Clear previous media content
+            mediaContainer.innerHTML = '';
+
+            // Insert image
+            if (circle.image) {
+                const image = document.createElement('img');
+                image.src = circle.image;
+                image.style.maxWidth = '100%';
+                image.style.height = 'auto';
+                mediaContainer.appendChild(image);
+            }
+
+            // Insert video
+            /* if (circle.video) {
+                 const video = document.createElement('video');
+                 video.src = circle.video;
+                 video.controls = true;
+                 video.style.width = '100%';
+                 video.style.height = '100%';
+                 mediaContainer.appendChild(video);
+             }*/
+
+            dialog.style.display = 'block';
+            isDialogOpen = true;
+            activeCircle = circle;
+        }
+
+        function closeDialog(dialogId) {
+            const dialog = document.getElementById(dialogId);
+            dialog.style.display = 'none';
+            isDialogOpen = false;
+            activeCircle = null;
+        }
+
+
+
+        function handleCircleClick(circle, dialogId) {
+            if (!isDialogOpen || activeCircle !== circle) {
+                openDialog(circle, dialogId);
+            } else {
+                closeDialog(dialogId);
+            }
+        }
+
+        function initializeCanvas(circles, canvasId, dialogId) {
+            const canvasContainer = document.getElementById(canvasId);
+            const canvas = canvasContainer.querySelector('canvas');
+            const dialog = document.getElementById(dialogId);
+            const closeButton = dialog.querySelector('.closeButton');
+
+            circles.forEach((circle) => {
+                const circleElement = document.createElement('button');
+                circleElement.className = 'circle';
+                circleElement.style.top = `${circle.y}px`;
+                circleElement.style.left = `${circle.x}px`;
+                circleElement.addEventListener('click', () =>
+                    handleCircleClick(circle, dialogId)
+                );
+                circleElement.addEventListener('focus', () => {
+                    activeCircle = circle;
+                });
+                circleElement.addEventListener('blur', () => {
+                    activeCircle = null;
+                });
+                canvasContainer.appendChild(circleElement);
+            });
+
+            closeButton.addEventListener('click', () => closeDialog(dialogId));
+        }
+
+        function drawCircles(circles, canvasId) {
+            circles.forEach((circle) => {
+                drawCircle(circle, canvasId);
+            });
+        }
+
+        function drawCanvas() {
+            const drawGrid = (canvasId) => {
+                const canvas = document.getElementById(canvasId);
+                const ctx = canvas.getContext('2d');
+                /* ctx.beginPath();
+                 ctx.fillStyle = 'black';
+                 for (let i = 0; i < 50; i++) {
+                     const pos = i * 50;
+                     ctx.moveTo(pos, 0);
+                     ctx.lineTo(pos, 5000);
+                     ctx.fillText(pos, pos, 10);
+ 
+                     ctx.moveTo(0, pos);
+                     ctx.lineTo(5000, pos);
+                     ctx.fillText(pos, 10, pos);
+                 }
+                 ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+                 ctx.stroke();
+                 */
+            };
+
+            drawCircles(circles1, 'myCanvas1');
+            drawGrid('myCanvas1');
+
+            drawCircles(circles2, 'myCanvas2');
+            drawGrid('myCanvas2');
+
+            drawCircles(circles3, 'myCanvas3');
+            drawGrid('myCanvas3');
+        }
+
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            section.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function changeColor(element) {
+            element.classList.toggle("h1-clicked");
+        }/*幫header字體換顏色*/
+
+
+        /*幫捷運站格子換顏色*/
+        function gridchangeColor1(element, color, originalTitle) {
+            var originalColor = "white"; // 初始狀態下的背景顏色
+
+            element.style.backgroundColor = color;
+
+            var heading = element.querySelector("h3");
+            var paragraph = element.querySelector("p");
+
+            if (color !== originalColor) {
+                heading.innerHTML = heading.dataset.subwayTitle + "捷運站";
+
+            } else {
+                heading.innerHTML = originalTitle;
+
+            }
+        }
+
+
+        // 收縮內容
+        function toggleContent() {
+            var arrow = document.getElementById("arrow");
+            var content = document.getElementById("content");
+
+            if (content.style.display === "none") {
+                content.style.display = "block";
+                arrow.innerHTML = "&#9650;"; // 上箭頭
+            } else {
+                content.style.display = "none";
+                arrow.innerHTML = "&#9660;"; // 下箭頭
+            }
+        }
+        /*  // 生成隨機顏色
+          function getRandomColor() {
+              var letters = '0123456789ABCDEF';
+              var color = '#';
+              for (var i = 0; i < 6; i++) {
+                  color += letters[Math.floor(Math.random() * 16)];
+              }
+              return color;
+          }
+  
+          // 應用隨機顏色到每個標題
+          var titles = document.querySelectorAll('.section-title');
+          titles.forEach(function (title) {
+              title.style.color = getRandomColor();
+          });
+          */
+
+        // 獲取標題元素
+        var titleElement = document.querySelector('header h1');
+        // 獲取標題内容
+        var titleText = titleElement.innerText;
+        // 清空標題内容
+        titleElement.innerText = '';
+
+        // 定義打字效果的速度和延遲時间
+        var typingSpeed = 100; // 每 個字母的打字速度，单位：毫秒
+        var delayTime = 1000; // 每 個字母之间的延遲時间，单位：毫秒
+
+        // 定義計數器和計時器
+        var i = 0;
+        var timer = setInterval(typeLetter, typingSpeed);
+
+        // 打字函数
+        function typeLetter() {
+            if (i < titleText.length) {
+                // 添加下一個字母到標題中
+                titleElement.innerText += titleText.charAt(i);
+                i++;
+            } else {
+                // 打字完成後清除計時器
+                clearInterval(timer);
+            }
+        }
+
+        // 獲取所有的section-title元素
+        var sectionTitles = document.querySelectorAll('.section-title');
+
+        // 遍历所有的section-title元素
+        sectionTitles.forEach(function (titleElement) {
+            // 獲取標題文本内容
+            var titleText = titleElement.innerText;
+            // 清空標題内容
+            titleElement.innerText = '';
+
+            // 定義打字效果的速度和延遲時间
+            var typingSpeed = 100; // 每 個字母的打字速度，單位：毫秒
+            var delayTime = 1000; // 每 個字母之間的延遲時间，單位：毫秒
+
+            // 定義計數器和計時器
+            var i = 0;
+            var timer = setInterval(typeLetter, typingSpeed);
+
+            // 打字函数
+            function typeLetter() {
+                if (i < titleText.length) {
+                    // 添加下一 個字母到標题中
+                    titleElement.innerText += titleText.charAt(i);
+                    i++;
+                } else {
+                    // 打字完成後清除計時器
+                    clearInterval(timer);
+                }
+            }
+        });
+
+
+
+        initializeCanvas(circles1, 'canvasContainer1', 'myDialog1');
+        initializeCanvas(circles2, 'canvasContainer2', 'myDialog2');
+        initializeCanvas(circles3, 'canvasContainer3', 'myDialog3');
+        drawCanvas();
+    </script>
+</body>
+
+</html>
